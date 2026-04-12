@@ -89,3 +89,31 @@ tmux set-option -gq '@coding_agents_status_command' "$status_segment"
 if [[ "$(tmux_opt '@coding_agents_status_enable' 'off')" == "on" ]]; then
   prepend_status_segment "$status_segment"
 fi
+
+# ── Window auto-rename (AI session → short title) ──────────
+
+printf -v rename_cmd "bash %q" "$CURRENT_DIR/scripts/agent-rename.sh"
+printf -v rename_current_cmd "bash %q --current" "$CURRENT_DIR/scripts/agent-rename.sh"
+
+rename_enable="$(tmux_opt '@coding_agents_rename_enable' 'on')"
+
+if [[ "$rename_enable" == "on" ]]; then
+  # Full scan on session switch; fast --current scan on window/pane switch.
+  # Use explicit [9] indices so reloading is idempotent (won't duplicate).
+  tmux set-hook -g 'client-session-changed[9]' "run-shell -b \"$rename_cmd\""
+  tmux set-hook -g 'after-new-window[9]'       "run-shell -b \"$rename_current_cmd\""
+  tmux set-hook -g 'after-select-window[9]'    "run-shell -b \"$rename_current_cmd\""
+  tmux set-hook -g 'after-select-pane[9]'      "run-shell -b \"$rename_current_cmd\""
+
+  # Manual refresh: prefix + R
+  rename_key="$(normalize_key "$(tmux_opt '@coding_agents_bind_rename' 'R')")"
+  if [[ -n "$rename_key" ]]; then
+    tmux bind-key "$rename_key" run-shell "$rename_cmd" \; display "AI window names refreshed"
+  fi
+else
+  # Clean up hooks if the feature was previously enabled.
+  tmux set-hook -gu 'client-session-changed[9]' 2>/dev/null || true
+  tmux set-hook -gu 'after-new-window[9]' 2>/dev/null || true
+  tmux set-hook -gu 'after-select-window[9]' 2>/dev/null || true
+  tmux set-hook -gu 'after-select-pane[9]' 2>/dev/null || true
+fi
