@@ -1,195 +1,88 @@
 # tmux-autoname-agent-sessions
 
-A tmux plugin for finding AI coding sessions fast.
-
-It gives you:
-
-- **Auto-rename** — windows running Claude Code or Codex are renamed to an LLM-generated short title derived from the first user prompt
-- A live pane picker for Claude, Codex, Aider, and OpenCode running inside tmux
-- A history picker that reads local Claude Code and Codex session history
-- Prompt-aware history search, so you can find a session by remembered user text
-- A compact status-bar segment with per-session agent presence
-- Small UX niceties like pinning, recent-pane weighting, preview panes, and dense or comfy layouts
-
-The plugin is built for `tmux + fzf + python3`, and works best on tmux `3.2+` because it relies on `display-popup`.
-
-## Features
-
-- Auto-rename:
-  - Detects Claude Code and Codex windows via the process tree
-  - Reads the first user prompt from the Claude Code session JSONL
-  - Calls an LLM (OpenRouter, configurable model) to generate a 3-6 word title
-  - Caches titles per session so each session triggers at most one API call
-  - Windows show `cc|Fix auth middleware` for Claude, `cx|codex` for Codex
-  - Falls back to truncated prompt text when no API key is set
-  - Restores `automatic-rename` when the AI session exits
-- Live picker:
-  - Detects agent panes from the tmux process tree
-  - Marks panes as `active` or `quiet`
-  - Supports pinning with `Ctrl-P`
-  - Remembers recently jumped panes and floats them upward
-  - Supports `compact` and `comfy` density with `Ctrl-O`
-- History picker:
-  - Reads `~/.claude/history.jsonl`, `~/.claude/sessions`, `~/.codex/session_index.jsonl`, and `~/.codex/history.jsonl`
-  - Searches summary, repo, agent name, and recent prompt text inside each session
-  - Shows a structured preview with meaningful recent turns
-  - Supports quick range filters like `:24h`, `:7d`, `:30d`, `:1y`, `:all`
-- Status segment:
-  - Optional tmux status-right integration
-  - Renders a concise multi-session summary
-
-## Requirements
-
-- tmux `>= 3.2`
-- `fzf`
-- `python3`
-- `jq` and `curl` (for auto-rename with LLM titles)
-- A Nerd Font is recommended for the icons, but not required
-
-## Install with TPM
-
-Add this to your `.tmux.conf`:
-
-```tmux
-set -g @plugin 'Luodian/tmux-autoname-agent-sessions'
-```
-
-Then reload tmux and install plugins with `prefix + I`.
-
-By default the plugin binds:
-
-- `prefix + a` for the live picker
-- `prefix + A` for history
-- `prefix + i` for help
-- `prefix + R` for manual AI rename refresh
-
-Window auto-rename is enabled by default. If you have an [OpenRouter](https://openrouter.ai/) API key, titles are LLM-generated. Otherwise they fall back to the first few words of your prompt.
-
-```bash
-export OPENROUTER_API_KEY="sk-or-..."
-```
-
-## Optional status bar integration
-
-If you want the plugin to prepend its segment to `status-right`, add:
-
-```tmux
-set -g @autoname_status_enable 'on'
-```
-
-If you prefer manual control, use the generated command stored at:
-
-```tmux
-tmux show -gv @autoname_status_command
-```
-
-and insert that `#(...)` segment wherever you want in `status-right`.
-
-## Configuration
-
-All options are optional.
-
-### Auto-rename
-
-```tmux
-# Disable window auto-rename (default: on)
-set -g @autoname_rename_enable 'off'
-
-# OpenRouter model for title generation (default: openai/gpt-5.4-nano)
-set -g @autoname_rename_model 'openai/gpt-4.1-nano'
-
-# API key via tmux option (alternative to OPENROUTER_API_KEY env var)
-set -g @autoname_rename_api_key 'sk-or-...'
-```
-
-### Keybindings
-
-```tmux
-set -g @autoname_bind_live 'a'
-set -g @autoname_bind_history 'A'
-set -g @autoname_bind_help 'i'
-set -g @autoname_bind_rename 'R'
-```
-
-Set any of them to `off` to disable that binding.
-
-### Popup sizes
-
-```tmux
-set -g @autoname_popup_live_width '90%'
-set -g @autoname_popup_live_height '84%'
-
-set -g @autoname_popup_history_width '94%'
-set -g @autoname_popup_history_height '88%'
-
-set -g @autoname_popup_help_width '72%'
-set -g @autoname_popup_help_height '70%'
-```
-
-### History path overrides
-
-If your local history files live somewhere else, you can override them with environment variables before tmux starts:
-
-```bash
-export TMUX_AUTONAME_CLAUDE_HISTORY="$HOME/.claude/history.jsonl"
-export TMUX_AUTONAME_CLAUDE_SESSIONS="$HOME/.claude/sessions"
-export TMUX_AUTONAME_CODEX_INDEX="$HOME/.codex/session_index.jsonl"
-export TMUX_AUTONAME_CODEX_HISTORY="$HOME/.codex/history.jsonl"
-```
-
-## Usage
-
-### Auto-rename
-
-Works automatically once the plugin is loaded. When you open Claude Code or Codex in a tmux window, the window title updates to a short description of the task:
+A tmux plugin that auto-renames windows running AI coding agents (Claude Code, Codex) to short, LLM-generated task descriptions.
 
 ```
 1:cc|Fix Auth Middleware  2:cc|Add User Tests  3:zsh
 ```
 
-- `prefix + R` refreshes all window names manually
-- Titles are cached in `~/.cache/tmux-ai-rename/` (one file per session)
-- Run `scripts/agent-rename.sh --clear` to purge the cache
+## How it works
 
-### Live picker
+1. Tmux hooks detect when you switch windows or open new ones
+2. The plugin walks the process tree to find `claude` or `codex` child processes
+3. For Claude Code, it reads the first user prompt from the session JSONL
+4. An LLM generates a 3-6 word English title via [OpenRouter](https://openrouter.ai/)
+5. The window is renamed to `cc|<title>` or `cx|codex`
+6. Titles are cached per session — each session triggers at most one API call
+7. When the agent exits, `automatic-rename` is restored
 
-- `Enter`: jump to the selected pane
-- `Ctrl-H`: switch to history
-- `Ctrl-P`: pin or unpin the selected pane
-- `Ctrl-R`: reload the live scan
-- `Ctrl-T`: toggle `all` and `active-only`
-- `Ctrl-O`: toggle `compact` and `comfy`
-- `Ctrl-Y`: copy `session:window.pane + cwd`
-- `Ctrl-E`: open a new tmux window at that pane's cwd
-- `Ctrl-/`: toggle preview
-- `Alt-S`: filter to current session
-- `Alt-C`, `Alt-X`, `Alt-A`, `Alt-O`: filter to `claude`, `codex`, `aider`, `opencode`
-- `Alt-0`: clear the quick filter
+Without an API key, titles fall back to the first few words of the prompt.
 
-### History picker
+## Requirements
 
-- Type any remembered prompt phrase to find a session by user text
-- `Enter`: resume the selected Claude or Codex session
-- `Ctrl-G`: jump to a matching live pane, or bridge into the live picker
-- `Ctrl-L`: switch back to the live picker
-- `Ctrl-R`: reload the current time range
-- `Ctrl-O`: toggle `compact` and `comfy`
-- `Ctrl-Y`: copy the session id
-- `Ctrl-E`: open the stored project path in a new tmux window
-- `Ctrl-/`: toggle preview
-- `:24h`, `:7d`, `:30d`, `:1y`, `:all`: switch history range
+- tmux `>= 3.2`
+- `python3`, `jq`, `curl`
 
-## Lint
+## Install
 
-```bash
-make lint
+### Human
+
+Add to your `.tmux.conf`:
+
+```tmux
+set -g @plugin 'Luodian/tmux-autoname-agent-sessions'
 ```
 
-## Notes
+Reload tmux and install with `prefix + I`.
 
-- Live pane detection is heuristic. It walks each pane's descendant process tree.
-- `active` and `quiet` are pane-local activity hints, not ground-truth model execution states.
-- History search is prompt-aware, but still intentionally bounded so the picker stays fast.
+Set your OpenRouter API key (optional, enables LLM-generated titles):
+
+```bash
+export OPENROUTER_API_KEY="sk-or-..."
+```
+
+### Agent
+
+Add this to your project's `CLAUDE.md` or `AGENTS.md`:
+
+```markdown
+## tmux window auto-rename
+
+This project uses [tmux-autoname-agent-sessions](https://github.com/Luodian/tmux-autoname-agent-sessions)
+to auto-rename tmux windows based on the first user prompt in each AI session.
+
+The plugin is installed via TPM. No action needed from agents — window titles
+update automatically when Claude Code or Codex sessions start.
+
+If window names look stale, run `prefix + R` or:
+
+    ~/.tmux/plugins/tmux-autoname-agent-sessions/scripts/agent-rename.sh --clear
+```
+
+## Configuration
+
+All options are optional.
+
+```tmux
+# Disable auto-rename (default: on)
+set -g @autoname_enable 'off'
+
+# Override the keybinding for manual refresh (default: R)
+set -g @autoname_bind_rename 'R'
+
+# OpenRouter model (default: openai/gpt-5.4-nano)
+set -g @autoname_model 'openai/gpt-4.1-nano'
+
+# API key via tmux option (alternative to OPENROUTER_API_KEY env var)
+set -g @autoname_api_key 'sk-or-...'
+```
+
+## Usage
+
+- Windows are renamed automatically — no manual action needed
+- `prefix + R` refreshes all window names
+- Titles are cached in `~/.cache/tmux-ai-rename/`
+- `scripts/agent-rename.sh --clear` purges the cache
 
 ## License
 

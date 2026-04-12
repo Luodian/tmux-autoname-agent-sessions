@@ -25,10 +25,10 @@ tmux_opt() {
   tmux show-option -gqv "$1" 2>/dev/null || true
 }
 
-RENAME_MODEL=$(tmux_opt '@autoname_rename_model')
+RENAME_MODEL=$(tmux_opt '@autoname_model')
 : "${RENAME_MODEL:=openai/gpt-5.4-nano}"
 
-API_KEY="${OPENROUTER_API_KEY:-$(tmux_opt '@autoname_rename_api_key')}"
+API_KEY="${OPENROUTER_API_KEY:-$(tmux_opt '@autoname_api_key')}"
 
 # ── process tree helpers ────────────────────────────────────
 
