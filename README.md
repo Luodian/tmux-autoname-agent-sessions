@@ -1,4 +1,4 @@
-# tmux-coding-agents
+# tmux-autoname-agent-sessions
 
 A tmux plugin for finding AI coding sessions fast.
 
@@ -51,7 +51,7 @@ The plugin is built for `tmux + fzf + python3`, and works best on tmux `3.2+` be
 Add this to your `.tmux.conf`:
 
 ```tmux
-set -g @plugin 'Luodian/tmux-coding-agents'
+set -g @plugin 'Luodian/tmux-autoname-agent-sessions'
 ```
 
 Then reload tmux and install plugins with `prefix + I`.
@@ -74,13 +74,13 @@ export OPENROUTER_API_KEY="sk-or-..."
 If you want the plugin to prepend its segment to `status-right`, add:
 
 ```tmux
-set -g @coding_agents_status_enable 'on'
+set -g @autoname_status_enable 'on'
 ```
 
 If you prefer manual control, use the generated command stored at:
 
 ```tmux
-tmux show -gv @coding_agents_status_command
+tmux show -gv @autoname_status_command
 ```
 
 and insert that `#(...)` segment wherever you want in `status-right`.
@@ -93,22 +93,22 @@ All options are optional.
 
 ```tmux
 # Disable window auto-rename (default: on)
-set -g @coding_agents_rename_enable 'off'
+set -g @autoname_rename_enable 'off'
 
 # OpenRouter model for title generation (default: openai/gpt-5.4-nano)
-set -g @coding_agents_rename_model 'openai/gpt-4.1-nano'
+set -g @autoname_rename_model 'openai/gpt-4.1-nano'
 
 # API key via tmux option (alternative to OPENROUTER_API_KEY env var)
-set -g @coding_agents_rename_api_key 'sk-or-...'
+set -g @autoname_rename_api_key 'sk-or-...'
 ```
 
 ### Keybindings
 
 ```tmux
-set -g @coding_agents_bind_live 'a'
-set -g @coding_agents_bind_history 'A'
-set -g @coding_agents_bind_help 'i'
-set -g @coding_agents_bind_rename 'R'
+set -g @autoname_bind_live 'a'
+set -g @autoname_bind_history 'A'
+set -g @autoname_bind_help 'i'
+set -g @autoname_bind_rename 'R'
 ```
 
 Set any of them to `off` to disable that binding.
@@ -116,14 +116,14 @@ Set any of them to `off` to disable that binding.
 ### Popup sizes
 
 ```tmux
-set -g @coding_agents_popup_live_width '90%'
-set -g @coding_agents_popup_live_height '84%'
+set -g @autoname_popup_live_width '90%'
+set -g @autoname_popup_live_height '84%'
 
-set -g @coding_agents_popup_history_width '94%'
-set -g @coding_agents_popup_history_height '88%'
+set -g @autoname_popup_history_width '94%'
+set -g @autoname_popup_history_height '88%'
 
-set -g @coding_agents_popup_help_width '72%'
-set -g @coding_agents_popup_help_height '70%'
+set -g @autoname_popup_help_width '72%'
+set -g @autoname_popup_help_height '70%'
 ```
 
 ### History path overrides
@@ -131,10 +131,10 @@ set -g @coding_agents_popup_help_height '70%'
 If your local history files live somewhere else, you can override them with environment variables before tmux starts:
 
 ```bash
-export TMUX_CODING_AGENTS_CLAUDE_HISTORY="$HOME/.claude/history.jsonl"
-export TMUX_CODING_AGENTS_CLAUDE_SESSIONS="$HOME/.claude/sessions"
-export TMUX_CODING_AGENTS_CODEX_INDEX="$HOME/.codex/session_index.jsonl"
-export TMUX_CODING_AGENTS_CODEX_HISTORY="$HOME/.codex/history.jsonl"
+export TMUX_AUTONAME_CLAUDE_HISTORY="$HOME/.claude/history.jsonl"
+export TMUX_AUTONAME_CLAUDE_SESSIONS="$HOME/.claude/sessions"
+export TMUX_AUTONAME_CODEX_INDEX="$HOME/.codex/session_index.jsonl"
+export TMUX_AUTONAME_CODEX_HISTORY="$HOME/.codex/history.jsonl"
 ```
 
 ## Usage

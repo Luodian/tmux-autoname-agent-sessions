@@ -5,9 +5,9 @@ tmux_opt() {
   tmux show-option -gqv "$1" 2>/dev/null
 }
 
-live_key=$(tmux_opt '@coding_agents_bind_live')
-history_key=$(tmux_opt '@coding_agents_bind_history')
-help_key=$(tmux_opt '@coding_agents_bind_help')
+live_key=$(tmux_opt '@autoname_bind_live')
+history_key=$(tmux_opt '@autoname_bind_history')
+help_key=$(tmux_opt '@autoname_bind_help')
 
 live_key=${live_key:-a}
 history_key=${history_key:-A}

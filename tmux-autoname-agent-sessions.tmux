@@ -73,20 +73,20 @@ printf -v history_cmd "bash %q" "$CURRENT_DIR/scripts/agent-history.sh"
 printf -v help_cmd "bash %q" "$CURRENT_DIR/scripts/agent-help.sh"
 printf -v status_segment "#(bash %q)" "$CURRENT_DIR/scripts/coding-agents.sh"
 
-live_w="$(tmux_opt '@coding_agents_popup_live_width' '90%')"
-live_h="$(tmux_opt '@coding_agents_popup_live_height' '84%')"
-history_w="$(tmux_opt '@coding_agents_popup_history_width' '94%')"
-history_h="$(tmux_opt '@coding_agents_popup_history_height' '88%')"
-help_w="$(tmux_opt '@coding_agents_popup_help_width' '72%')"
-help_h="$(tmux_opt '@coding_agents_popup_help_height' '70%')"
+live_w="$(tmux_opt '@autoname_popup_live_width' '90%')"
+live_h="$(tmux_opt '@autoname_popup_live_height' '84%')"
+history_w="$(tmux_opt '@autoname_popup_history_width' '94%')"
+history_h="$(tmux_opt '@autoname_popup_history_height' '88%')"
+help_w="$(tmux_opt '@autoname_popup_help_width' '72%')"
+help_h="$(tmux_opt '@autoname_popup_help_height' '70%')"
 
-rebind_popup '@coding_agents_bind_live' '@coding_agents_bound_live' 'a' "$live_w" "$live_h" "$live_cmd"
-rebind_popup '@coding_agents_bind_history' '@coding_agents_bound_history' 'A' "$history_w" "$history_h" "$history_cmd"
-rebind_popup '@coding_agents_bind_help' '@coding_agents_bound_help' 'i' "$help_w" "$help_h" "$help_cmd"
+rebind_popup '@autoname_bind_live' '@autoname_bound_live' 'a' "$live_w" "$live_h" "$live_cmd"
+rebind_popup '@autoname_bind_history' '@autoname_bound_history' 'A' "$history_w" "$history_h" "$history_cmd"
+rebind_popup '@autoname_bind_help' '@autoname_bound_help' 'i' "$help_w" "$help_h" "$help_cmd"
 
-tmux set-option -gq '@coding_agents_status_command' "$status_segment"
+tmux set-option -gq '@autoname_status_command' "$status_segment"
 
-if [[ "$(tmux_opt '@coding_agents_status_enable' 'off')" == "on" ]]; then
+if [[ "$(tmux_opt '@autoname_status_enable' 'off')" == "on" ]]; then
   prepend_status_segment "$status_segment"
 fi
 
@@ -95,7 +95,7 @@ fi
 printf -v rename_cmd "bash %q" "$CURRENT_DIR/scripts/agent-rename.sh"
 printf -v rename_current_cmd "bash %q --current" "$CURRENT_DIR/scripts/agent-rename.sh"
 
-rename_enable="$(tmux_opt '@coding_agents_rename_enable' 'on')"
+rename_enable="$(tmux_opt '@autoname_rename_enable' 'on')"
 
 if [[ "$rename_enable" == "on" ]]; then
   # Full scan on session switch; fast --current scan on window/pane switch.
@@ -106,7 +106,7 @@ if [[ "$rename_enable" == "on" ]]; then
   tmux set-hook -g 'after-select-pane[9]'      "run-shell -b \"$rename_current_cmd\""
 
   # Manual refresh: prefix + R
-  rename_key="$(normalize_key "$(tmux_opt '@coding_agents_bind_rename' 'R')")"
+  rename_key="$(normalize_key "$(tmux_opt '@autoname_bind_rename' 'R')")"
   if [[ -n "$rename_key" ]]; then
     tmux bind-key "$rename_key" run-shell "$rename_cmd" \; display "AI window names refreshed"
   fi

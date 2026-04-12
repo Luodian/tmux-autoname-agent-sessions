@@ -21,10 +21,10 @@ def env_path(name, default):
     return Path(value).expanduser() if value else default
 
 
-CLAUDE_HISTORY = env_path("TMUX_CODING_AGENTS_CLAUDE_HISTORY", HOME / ".claude" / "history.jsonl")
-CLAUDE_SESSIONS = env_path("TMUX_CODING_AGENTS_CLAUDE_SESSIONS", HOME / ".claude" / "sessions")
-CODEX_INDEX = env_path("TMUX_CODING_AGENTS_CODEX_INDEX", HOME / ".codex" / "session_index.jsonl")
-CODEX_HISTORY = env_path("TMUX_CODING_AGENTS_CODEX_HISTORY", HOME / ".codex" / "history.jsonl")
+CLAUDE_HISTORY = env_path("TMUX_AUTONAME_CLAUDE_HISTORY", HOME / ".claude" / "history.jsonl")
+CLAUDE_SESSIONS = env_path("TMUX_AUTONAME_CLAUDE_SESSIONS", HOME / ".claude" / "sessions")
+CODEX_INDEX = env_path("TMUX_AUTONAME_CODEX_INDEX", HOME / ".codex" / "session_index.jsonl")
+CODEX_HISTORY = env_path("TMUX_AUTONAME_CODEX_HISTORY", HOME / ".codex" / "history.jsonl")
 PREVIEW_LIMIT = 14
 SEARCH_PROMPT_HEAD = 6
 SEARCH_PROMPT_TAIL = 14
