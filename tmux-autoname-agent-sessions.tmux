@@ -24,11 +24,12 @@ printf -v rename_current_cmd "bash %q --current" "$CURRENT_DIR/scripts/agent-ren
 rename_enable="$(tmux_opt '@autoname_enable' 'on')"
 
 if [[ "$rename_enable" == "on" ]]; then
-  # Full scan on session switch; fast --current scan on window/pane switch.
+  # Full scan on session switch AND on window switch (keeps every tab current
+  # whenever you navigate); fast --current scan on new-window / pane switch.
   # Explicit [9] indices keep reloads idempotent (won't duplicate).
   tmux set-hook -g 'client-session-changed[9]' "run-shell -b \"$rename_cmd\""
   tmux set-hook -g 'after-new-window[9]'       "run-shell -b \"$rename_current_cmd\""
-  tmux set-hook -g 'after-select-window[9]'    "run-shell -b \"$rename_current_cmd\""
+  tmux set-hook -g 'after-select-window[9]'    "run-shell -b \"$rename_cmd\""
   tmux set-hook -g 'after-select-pane[9]'      "run-shell -b \"$rename_current_cmd\""
 
   # Manual refresh: prefix + R
