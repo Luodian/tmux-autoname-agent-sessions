@@ -36,9 +36,25 @@ if [[ "$rename_enable" == "on" ]]; then
   if [[ -n "$rename_key" ]]; then
     tmux bind-key "$rename_key" run-shell "$rename_cmd" \; display "AI window names refreshed"
   fi
+
+  # Periodic background refresh (tmux has no timer hook). Set to 0/off to disable.
+  refresh_interval="$(tmux_opt '@autoname_refresh_interval' '30')"
+  case "$refresh_interval" in
+    ''|off|none|0|disabled|disable) : ;;
+    *)
+      printf -v watch_cmd "bash %q --watch %q" "$CURRENT_DIR/scripts/agent-rename.sh" "$refresh_interval"
+      tmux run-shell -b "$watch_cmd"
+      ;;
+  esac
 else
   tmux set-hook -gu 'client-session-changed[9]' 2>/dev/null || true
   tmux set-hook -gu 'after-new-window[9]' 2>/dev/null || true
   tmux set-hook -gu 'after-select-window[9]' 2>/dev/null || true
   tmux set-hook -gu 'after-select-pane[9]' 2>/dev/null || true
+
+  # Stop the periodic refresh watcher if one is running.
+  watch_pidfile="${HOME}/.cache/tmux-ai-rename/watch.pid"
+  if [[ -f "$watch_pidfile" ]]; then
+    kill "$(cat "$watch_pidfile" 2>/dev/null)" 2>/dev/null || true
+  fi
 fi

@@ -3,16 +3,25 @@
 A tmux plugin that auto-renames windows running AI coding agents (Claude Code, Codex) to short, LLM-generated task descriptions.
 
 ```
-1:cc|Fix Auth Middleware  2:cc|Add User Tests  3:zsh
+1:cc|Fix Auth Middleware  2:codex|Add User Tests  3:zsh
 ```
 
 ## How it works
 
 1. Tmux hooks detect when you switch windows or open new ones
-2. The plugin walks the process tree to find `claude` or `codex` child processes
-3. For Claude Code, it reads the first user prompt from the session JSONL
+2. The plugin walks the full process-tree descendants of each pane to find
+   an interactive `claude` or `codex` (MCP/app-server/stream-json helpers
+   are ignored), and matches against the binary basename so it still works
+   when the agent is a grandchild launched via `node` or lives under a
+   path like `/Applications/Codex.app/.../codex`
+3. It reads the first user prompt from the agent's own session store:
+   - Claude Code → `~/.claude/projects/<proj>/<session_id>.jsonl`
+   - Codex      → the `rollout-*.jsonl` the codex process has open (resolved
+                   with `lsof`), skipping the auto-injected
+                   `<environment_context>` / `<user_instructions>` / AGENTS.md
+                   preamble turns
 4. An LLM generates a 3-6 word English title via [OpenRouter](https://openrouter.ai/)
-5. The window is renamed to `cc|<title>` or `cx|codex`
+5. The window is renamed to `cc|<title>` (Claude) or `codex|<title>` (Codex)
 6. Titles are cached per session — each session triggers at most one API call
 7. When the agent exits, `automatic-rename` is restored
 
@@ -69,6 +78,12 @@ set -g @autoname_enable 'off'
 
 # Override the keybinding for manual refresh (default: R)
 set -g @autoname_bind_rename 'R'
+
+# Periodic background refresh, in seconds (default: 30). Set to 0 / off to
+# disable and rely only on window/pane-switch hooks. This is what lets a
+# brand-new session's "cc|?" placeholder upgrade to its real title once the
+# first prompt lands, without needing a manual switch.
+set -g @autoname_refresh_interval '30'
 
 # OpenRouter model (default: openai/gpt-5.4-nano)
 set -g @autoname_model 'openai/gpt-4.1-nano'
